@@ -8,6 +8,7 @@ Description: Uptime Monitoring API is a lightweight pure Node.js application tha
 // Importing the required modules.
 const http = require('http');
 const { handleRequestResponse } = require('./helpers/handleReqRes');
+const environment = require('./helpers/environments');
 
 
 
@@ -22,8 +23,8 @@ app.config = {
 // create server
 app.createServer = () => {
     const server = http.createServer(app.handleRequestResponse);
-    server.listen(app.config.port, () => {
-        console.log('server listening port ' + app.config.port);
+    server.listen(environment.port, () => {
+        console.log('server listening port ' + environment.port);
     });
 };
 
