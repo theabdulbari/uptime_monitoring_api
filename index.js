@@ -15,7 +15,7 @@ const data = require('./lib/data');
 
 // test purpose
 
-data.read('test', 'newfile', (err, data) => {
+data.update('test', 'newfile', {'N':'A', 'L':'C'}, (err, data) => {
     console.log(err, data);
 });
 
