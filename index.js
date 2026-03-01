@@ -15,9 +15,9 @@ const data = require('./lib/data');
 
 // test purpose
 
-data.delete('test', 'newfile', (err) => {
-    console.log(err);
-});
+// data.delete('test', 'newfile', (err) => {
+//     console.log(err);
+// });
 
 
 // module scaffolding.

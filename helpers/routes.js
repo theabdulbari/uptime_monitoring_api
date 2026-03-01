@@ -6,9 +6,11 @@ Description: Application routes.
 */
 // dependencies 
 const { testHandler } = require('../handlers/routeHandlers/testHandler');
+const { userHandler } = require('../handlers/routeHandlers/userHandler');
 
 const routes = {
-    'test': testHandler,
+    test: testHandler,
+    user: userHandler,
 };
 
 module.exports = routes;
