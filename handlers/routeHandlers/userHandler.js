@@ -8,6 +8,7 @@ Description: User Handler to serve user related data.
 // dependecies
 const data = require('../../lib/data');
 const { hash }  = require('../../helpers/utilities');
+const { parseJSON } = require('../../helpers/utilities');
 
 // module scaffolding
 const handler = {};
@@ -25,7 +26,22 @@ handler.userHandler = (reqProperties, res) => {
 handler._users = {};
 
 handler._users.get = (reqProperties, callback) => {
-    callback(200);
+    // check primary id is already exists or not
+    const phone = typeof(reqProperties.queryStringObject.phone) === 'string' &&  reqProperties.queryStringObject.phone.trim().length === 11 ? reqProperties.queryStringObject.phone : false;
+    if(phone){
+        // check the user
+        data.read('users', phone, (err, u) => {
+            const user = { ...parseJSON(u)};
+            if(!err && user){
+                delete user.password;
+                callback(200, user)
+            }else{
+                callback(404, {error: 'User not found'});
+            }
+        });
+    }else{
+        callback(404, {error: 'User not found'});
+    }
 };
 
 handler._users.post = (reqProperties, callback) => {
@@ -35,7 +51,7 @@ handler._users.post = (reqProperties, callback) => {
     const phone = typeof(reqProperties.body.phone) === 'string' &&  reqProperties.body.phone.trim().length === 11 ? reqProperties.body.phone : false;
     const password = typeof(reqProperties.body.password) === 'string' &&  reqProperties.body.password.trim().length > 0 ? reqProperties.body.password : false;
     const termsConf = typeof(reqProperties.body.termsConf) === 'boolean' &&  reqProperties.body.termsConf ? reqProperties.body.termsConf : false;
-    
+
     if(firstName && lastName && phone && password && termsConf)
     {
         // check the user exists or not
@@ -59,7 +75,7 @@ handler._users.post = (reqProperties, callback) => {
                     }
                 });
             }else{
-                callback(500, {error: 'Server error'});
+                callback(500, {error: 'Server error. User may already exists.'});
             }
         });
     }else{
