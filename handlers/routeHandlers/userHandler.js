@@ -120,7 +120,24 @@ handler._users.put = (reqProperties, callback) => {
 };
 
 handler._users.delete = (reqProperties, callback) => {
-    
+    const phone = typeof(reqProperties.queryStringObject.phone) === 'string' && reqProperties.queryStringObject.phone.trim().length == 11 ? reqProperties.queryStringObject.phone : false;
+    if(phone){
+        data.read('users', phone, (err, u) => {
+            if(!err && u){
+                data.delete('users', phone, (delErr) => {
+                    if(!delErr){
+                        callback(200, {message: 'user successfully deleted'});
+                    }else{
+                        callback(500, { error: 'Server error'});
+                    }
+                });
+            }else{
+                callback(500, {error: 'Invalid request'});
+            }
+        });
+    }else{
+        callback(400, {error: 'Invalid request'});
+    }
 };
 
 module.exports = handler;
