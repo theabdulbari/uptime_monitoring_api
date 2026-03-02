@@ -84,7 +84,39 @@ handler._users.post = (reqProperties, callback) => {
 };
 
 handler._users.put = (reqProperties, callback) => {
-    
+    const phone = typeof(reqProperties.body.phone) === 'string' &&  reqProperties.body.phone.trim().length === 11 ? reqProperties.body.phone : false;
+
+    const firstName = typeof(reqProperties.body.firstName) === 'string' &&  reqProperties.body.firstName.trim().length > 0 ? reqProperties.body.firstName : false;
+    const lastName = typeof(reqProperties.body.lastName) === 'string' &&  reqProperties.body.lastName.trim().length > 0 ? reqProperties.body.lastName : false;
+    const password = typeof(reqProperties.body.password) === 'string' &&  reqProperties.body.password.trim().length > 0 ? reqProperties.body.password : false;
+
+    if(phone){
+        if(firstName || lastName || password){
+            data.read('users', phone, (err, u) => {
+                let userData = { ... parseJSON(u)};
+                if(!err && userData){
+                    if(firstName){userData.firstName = firstName;}
+                    if(lastName){userData.lastName = lastName;}
+                    if(password){userData.password = hash(password);}
+                    // update db
+                    data.update('users', phone, userData, (err) => {
+                        if(!err){
+                            callback(200, {message: 'user successfully updated'});
+                        }else{
+                            callback(500, { error : 'Invalid request' });
+                        }
+                    });
+
+                }else{
+                    callback(400, {error: 'Invalid request'});
+                }
+            });
+        }else{
+            callback(400, {error: 'Invalid request'});
+        }
+    }else{
+        callback(400, {error: 'Invalid phone number'});
+    }
 };
 
 handler._users.delete = (reqProperties, callback) => {
