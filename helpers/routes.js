@@ -7,10 +7,12 @@ Description: Application routes.
 // dependencies 
 const { testHandler } = require('../handlers/routeHandlers/testHandler');
 const { userHandler } = require('../handlers/routeHandlers/userHandler');
+const { tokenHandler } = require('../handlers/routeHandlers/tokenHandler');
 
 const routes = {
     test: testHandler,
     user: userHandler,
+    token: tokenHandler,
 };
 
 module.exports = routes;

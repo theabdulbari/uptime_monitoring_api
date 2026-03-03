@@ -34,5 +34,21 @@ utilities.hash = (str) => {
     
 };
 
+// rando string
+utilities.randString = (strLength) => {
+    let length = strLength;
+    if(typeof(strLength) === 'number' && strLength > 0){
+        let customChar = 'abcdefghijklmnopqrstuvwxyz1234567890';
+        let output = '';
+        for(let i = 1; i <= length; i+= 1 ){
+            let randChar = customChar.charAt(Math.floor(Math.random() * customChar.length));
+            output += randChar;
+        }
+        return output;
+    }
+    return false;
+    
+};
+
 // export module
 module.exports = utilities;
