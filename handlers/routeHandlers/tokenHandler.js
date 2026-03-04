@@ -27,7 +27,24 @@ handler.tokenHandler = (reqProperties, res) => {
 handler._token = {};
 
 handler._token.get = (reqProperties, callback) => {
+    // check token valid or not
+    const tokenId = typeof(reqProperties.queryStringObject.id) == 'string' && reqProperties.queryStringObject.id.trim().length === 20 ? reqProperties.queryStringObject.id : false;
+    if(tokenId)
+    {
 
+        // check token
+        data.read('tokens', tokenId, (tokenReadErr, t) => {
+            let token = { ... parseJSON(t)};
+            if(!tokenReadErr && token){
+                callback(200, token);
+            }else{
+                callback(404, {error : 'Token not found'});
+            }
+        });
+    }else{
+        callback(404, {error: 'Token not found'});
+    }
+    
 };
 
 handler._token.post = (reqProperties, callback) => {
