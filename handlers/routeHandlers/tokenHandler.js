@@ -82,8 +82,34 @@ handler._token.post = (reqProperties, callback) => {
 
 };
 
+// refresh token
 handler._token.put = (reqProperties, callback) => {
 
+    const id = typeof(reqProperties.body.id) === 'string' && reqProperties.body.id.trim().length === 20 ? reqProperties.body.id : false;
+    const extend = typeof(reqProperties.body.extend) === 'boolean' && reqProperties.body.extend === true ? true : false;
+    if(id && extend){
+        data.read('tokens', id, (tokenGetError, t) => {
+            let token  = parseJSON(t);
+
+            if(!tokenGetError && token && token.expires > Date.now()){
+                token.expires = Date.now() + 60 * 60 * 1000;
+
+                // update token
+                data.update('tokens', id, token, (updateError) => {
+                    if(!updateError){
+                        callback(200, {message: 'token updated'});
+                    }else{
+                        callback(500, {error: 'Invalid request'});
+                    }
+                });
+            }else{
+                callback(400, {error: 'Token already expiresd'});
+            }
+
+        });
+    }else{
+        callback(500, {error: 'Invalid request'});
+    }
 };
 
 handler._token.delete = (reqProperties, callback) => {
