@@ -9,6 +9,7 @@ Description: User Handler to serve user related data.
 const data = require('../../lib/data');
 const { hash }  = require('../../helpers/utilities');
 const { parseJSON } = require('../../helpers/utilities');
+const tokenHandler = require('./tokenHandler');
 
 // module scaffolding
 const handler = {};
@@ -29,16 +30,25 @@ handler._users.get = (reqProperties, callback) => {
     // check primary id is already exists or not
     const phone = typeof(reqProperties.queryStringObject.phone) === 'string' &&  reqProperties.queryStringObject.phone.trim().length === 11 ? reqProperties.queryStringObject.phone : false;
     if(phone){
-        // check the user
-        data.read('users', phone, (err, u) => {
-            const user = { ...parseJSON(u)};
-            if(!err && user){
-                delete user.password;
-                callback(200, user)
+        // verify token
+        const token = typeof(reqProperties.headerObject.token) === 'string' ? reqProperties.headerObject.token : false;
+        tokenHandler._token.Verify(token, phone, (tokenId) => {
+            if(tokenId){
+                // check the user
+                data.read('users', phone, (err, u) => {
+                    const user = { ...parseJSON(u)};
+                    if(!err && user){
+                        delete user.password;
+                        callback(200, user)
+                    }else{
+                        callback(404, {error: 'User not found'});
+                    }
+                });
             }else{
-                callback(404, {error: 'User not found'});
+                callback(403, {error: 'User authentication failed'})
             }
         });
+
     }else{
         callback(404, {error: 'User not found'});
     }
@@ -92,23 +102,32 @@ handler._users.put = (reqProperties, callback) => {
 
     if(phone){
         if(firstName || lastName || password){
-            data.read('users', phone, (err, u) => {
-                let userData = { ... parseJSON(u)};
-                if(!err && userData){
-                    if(firstName){userData.firstName = firstName;}
-                    if(lastName){userData.lastName = lastName;}
-                    if(password){userData.password = hash(password);}
-                    // update db
-                    data.update('users', phone, userData, (err) => {
-                        if(!err){
-                            callback(200, {message: 'user successfully updated'});
+            // verify token
+            const token = typeof(reqProperties.headerObject.token) === 'string' ? reqProperties.headerObject.token : false;
+            tokenHandler._token.Verify(token, phone, (tokenId) => {
+                if(tokenId){
+                    // lokup user
+                    data.read('users', phone, (err, u) => {
+                        let userData = { ... parseJSON(u)};
+                        if(!err && userData){
+                            if(firstName){userData.firstName = firstName;}
+                            if(lastName){userData.lastName = lastName;}
+                            if(password){userData.password = hash(password);}
+                            // update db
+                            data.update('users', phone, userData, (err) => {
+                                if(!err){
+                                    callback(200, {message: 'user successfully updated'});
+                                }else{
+                                    callback(500, { error : 'Invalid request' });
+                                }
+                            });
+
                         }else{
-                            callback(500, { error : 'Invalid request' });
+                            callback(400, {error: 'Invalid request'});
                         }
                     });
-
                 }else{
-                    callback(400, {error: 'Invalid request'});
+                    callback(403, {error: 'Un authenticated user'});
                 }
             });
         }else{
@@ -122,19 +141,29 @@ handler._users.put = (reqProperties, callback) => {
 handler._users.delete = (reqProperties, callback) => {
     const phone = typeof(reqProperties.queryStringObject.phone) === 'string' && reqProperties.queryStringObject.phone.trim().length == 11 ? reqProperties.queryStringObject.phone : false;
     if(phone){
-        data.read('users', phone, (err, u) => {
-            if(!err && u){
-                data.delete('users', phone, (delErr) => {
-                    if(!delErr){
-                        callback(200, {message: 'user successfully deleted'});
+        // token verify
+        const token = typeof(reqProperties.headerObject.token) === 'string' ? reqProperties.headerObject.token : false;
+        tokenHandler._token.Verify(token, phone, (tokenId)=>{
+            if(tokenId){
+                // lookup user
+                data.read('users', phone, (err, u) => {
+                    if(!err && u){
+                        data.delete('users', phone, (delErr) => {
+                            if(!delErr){
+                                callback(200, {message: 'user successfully deleted'});
+                            }else{
+                                callback(500, { error: 'Server error'});
+                            }
+                        });
                     }else{
-                        callback(500, { error: 'Server error'});
+                        callback(500, {error: 'Invalid request'});
                     }
                 });
             }else{
-                callback(500, {error: 'Invalid request'});
+                callback(403, {error: 'Un authenticated user'});
             }
         });
+        
     }else{
         callback(400, {error: 'Invalid request'});
     }
