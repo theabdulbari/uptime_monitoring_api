@@ -113,6 +113,25 @@ handler._token.put = (reqProperties, callback) => {
 };
 
 handler._token.delete = (reqProperties, callback) => {
+    const id = typeof(reqProperties.queryStringObject.id) === 'string' && reqProperties.queryStringObject.id.trim().length === 20 ? reqProperties.queryStringObject.id : false;
+    if(id){
+
+        data.read('tokens', id, (tokenReadErr, token)=> {
+            if(!tokenReadErr && token){
+                data.delete('tokens', id, (tokenErr) => {
+            if(!tokenErr){
+                callback(200, {message: 'Token deleted successfully'})
+            }else{
+                callback(500, {error: 'Invalid request'});
+            }
+        });
+            }else{
+                callback(500, {error: 'Invalid request'});
+            }
+        });
+    }else{
+        callback(500, {error: 'Invalid request'});
+    }
 
 };
 
